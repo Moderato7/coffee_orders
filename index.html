@@ -3,115 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사내 커피 주문 시스템</title>
+    <title>커피 주문하기</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
-        input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background-color: #6f4e37; color: white; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.3s; }
-        button:hover { background-color: #4b3621; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        
-        /* 주문 완료 섹션 (처음엔 숨김) */
-        #successView { display: none; }
-        .success-icon { font-size: 60px; color: #4CAF50; margin-bottom: 15px; }
-        .order-summary { background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; margin: 20px 0; text-align: left; }
-        .order-summary strong { color: #166534; }
+        body { font-family: sans-serif; background: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 90%; max-width: 350px; }
+        .session-tag { background: #6f4e37; color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; display: inline-block; margin-bottom: 10px; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        button { background: #6f4e37; color: white; font-weight: bold; border: none; cursor: pointer; }
+        #successView { display: none; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="orderForm">
-        <h2>☕ 커피 주문하기</h2>
-        <div class="form-group">
-            <label>성함</label>
-            <input type="text" id="userName" placeholder="이름을 입력하세요">
-        </div>
-        <div class="form-group">
-            <label>메뉴</label>
-            <select id="menuName">
-                <option value="아메리카노">아메리카노</option>
-                <option value="카페라떼">카페라떼</option>
-                <option value="바닐라라떼">바닐라라떼</option>
-                <option value="복숭아아이스티">복숭아아이스티</option>
-                <option value="초코라떼">초코라떼</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>온도</label>
-            <select id="isIce">
-                <option value="true">ICE (차갑게)</option>
-                <option value="false">HOT (따뜻하게)</option>
-            </select>
-        </div>
-        <button id="submitBtn">주문 전송</button>
+<div class="card">
+    <div id="orderView">
+        <div id="sessionDisplay" class="session-tag">세션 확인 중...</div>
+        <h2>☕ 커피 주문</h2>
+        <input type="text" id="uName" placeholder="이름 입력">
+        <select id="mName">
+            <option value="아메리카노">아메리카노</option>
+            <option value="카페라떼">카페라떼</option>
+            <option value="복숭아아이스티">복숭아아이스티</option>
+        </select>
+        <select id="isIce">
+            <option value="true">ICE</option>
+            <option value="false">HOT</option>
+        </select>
+        <button onclick="sendOrder()">주문하기</button>
     </div>
 
     <div id="successView">
-        <div class="success-icon">✨</div>
-        <h2>주문이 완료되었습니다!</h2>
-        <div class="order-summary" id="summaryDetails"></div>
-        <button onclick="location.reload()">새로 주문하기</button>
+        <h2 style="color:#4CAF50;">✅ 주문 완료!</h2>
+        <p>전송되었습니다. 맛있게 드세요!</p>
     </div>
 </div>
 
 <script>
-    // ### 본인의 Supabase 정보로 교체하세요! ###
     const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
 
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    document.getElementById('submitBtn').addEventListener('click', async () => {
-        const uName = document.getElementById('userName').value;
-        const mName = document.getElementById('menuName').value;
+    // URL에서 ?sid=값 가져오기
+    const params = new URLSearchParams(window.location.search);
+    const sid = params.get('sid');
+
+    if(!sid) {
+        document.body.innerHTML = "<h3>잘못된 접근입니다. 관리자가 공유한 링크를 이용해 주세요.</h3>";
+    } else {
+        document.getElementById('sessionDisplay').innerText = `주문 세션: ${sid}`;
+    }
+
+    async function sendOrder() {
+        const name = document.getElementById('uName').value;
+        const menu = document.getElementById('mName').value;
         const ice = document.getElementById('isIce').value === "true";
 
-        if (!uName) {
-            alert("이름을 입력해주세요!");
-            return;
-        }
+        if(!name) return alert("이름을 입력하세요.");
 
-        const btn = document.getElementById('submitBtn');
-        btn.innerText = "전송 중...";
-        btn.disabled = true;
+        const { error } = await supabaseClient.from('orders').insert([{
+            user_name: name, menu_name: menu, is_ice: ice, session_id: sid
+        }]);
 
-        // [핵심] 오늘 날짜를 session_id로 생성 (예: 2026-04-29)
-        const todayId = new Date().toISOString().split('T')[0];
-
-        // DB 데이터 삽입 (session_id 포함)
-        const { error } = await supabaseClient
-            .from('orders')
-            .insert([{ 
-                user_name: uName, 
-                menu_name: mName, 
-                is_ice: ice,
-                session_id: todayId 
-            }]);
-
-        if (error) {
-            alert("주문 전송 중 오류가 발생했습니다: " + error.message);
-            btn.innerText = "주문 전송";
-            btn.disabled = false;
-        } else {
-            // 화면 전환
-            document.getElementById('orderForm').style.display = 'none';
+        if(!error) {
+            document.getElementById('orderView').style.display = 'none';
             document.getElementById('successView').style.display = 'block';
-            
-            // 요약 정보 표시
-            document.getElementById('summaryDetails').innerHTML = `
-                <strong>주문자:</strong> ${uName}<br>
-                <strong>메뉴:</strong> ${mName}<br>
-                <strong>옵션:</strong> ${ice ? 'ICE (차갑게)' : 'HOT (따뜻하게)'}<br>
-                <strong>주문일:</strong> ${todayId}
-            `;
+        } else {
+            alert("오류: " + error.message);
         }
-    });
+    }
 </script>
-
 </body>
 </html>
