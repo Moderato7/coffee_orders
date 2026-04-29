@@ -81,6 +81,21 @@
             alert("오류: " + error.message);
         }
     }
+
+    // Supabase 오류 점검용
+    console.log("연결 시도 URL:", SB_URL);
+    console.log("연결 시도 KEY:", SB_KEY);
+    
+    // 테스트용 간단 조회
+    async function testConnection() {
+        const { data, error } = await supabaseClient.from('orders').select('*').limit(1);
+        if (error) {
+            console.error("연결 에러 상세:", error);
+        } else {
+            console.log("연결 성공!");
+        }
+    }
+    testConnection();
 </script>
 </body>
 </html>
