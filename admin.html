@@ -37,9 +37,10 @@
 </div>
 
 <script>
-   const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/";
+    const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+    
 
     // 1. 세션 링크 생성 및 화면 표시
     function createSession() {
