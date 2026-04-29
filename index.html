@@ -2,65 +2,123 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사내 커피 주문 시스템</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; max-width: 400px; }
-        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; }
-        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
+        input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { background-color: #6f4e37; color: white; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #4b3621; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        /* 주문 완료 섹션 (처음엔 숨김) */
+        #successView { display: none; }
+        .success-icon { font-size: 60px; color: #4CAF50; margin-bottom: 15px; }
+        .order-summary { background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; margin: 20px 0; text-align: left; }
+        .order-summary strong { color: #166534; }
     </style>
 </head>
 <body>
 
-    <div class="card">
+<div class="container">
+    <div id="orderForm">
         <h2>☕ 커피 주문하기</h2>
-        <input type="text" id="userName" placeholder="닉네임을 입력하세요">
-        
-        <select id="menuName">
-            <option value="아메리카노">아메리카노</option>
-            <option value="카페라떼">카페라떼</option>
-            <option value="바닐라라떼">바닐라라떼</option>
-        </select>
-
-        <select id="temp">
-            <option value="true">ICE (차갑게)</option>
-            <option value="false">HOT (따뜻하게)</option>
-        </select>
-
-        <button onclick="order()">주문 제출</button>
+        <div class="form-group">
+            <label>성함</label>
+            <input type="text" id="userName" placeholder="이름을 입력하세요">
+        </div>
+        <div class="form-group">
+            <label>메뉴</label>
+            <select id="menuName">
+                <option value="아메리카노">아메리카노</option>
+                <option value="카페라떼">카페라떼</option>
+                <option value="바닐라라떼">바닐라라떼</option>
+                <option value="복숭아아이스티">복숭아아이스티</option>
+                <option value="초코라떼">초코라떼</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>온도</label>
+            <select id="isIce">
+                <option value="true">ICE (차갑게)</option>
+                <option value="false">HOT (따뜻하게)</option>
+            </select>
+        </div>
+        <button id="submitBtn">주문 전송</button>
     </div>
 
-    <script>
-        // 1. Supabase 연결 설정 (본인의 정보로 교체하세요!)
-        const SUPABASE_URL = 'https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <div id="successView">
+        <div class="success-icon">✨</div>
+        <h2>주문이 완료되었습니다!</h2>
+        <div class="order-summary" id="summaryDetails"></div>
+        <button onclick="location.reload()">새로 주문하기</button>
+    </div>
+</div>
 
-        // 2. 주문 함수
-        async function order() {
-            const name = document.getElementById('userName').value;
-            const menu = document.getElementById('menuName').value;
-            const isIce = document.getElementById('temp').value === "true";
+<script>
+    // ### 본인의 Supabase 정보로 교체하세요! ###
+    const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
 
-            if (!name) {
-                alert("이름을 입력해주세요!");
-                return;
-            }
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-            // DB에 데이터 넣기
-            const { data, error } = await supabase
-                .from('orders')
-                .insert([{ user_name: name, menu_name: menu, is_ice: isIce }]);
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        const uName = document.getElementById('userName').value;
+        const mName = document.getElementById('menuName').value;
+        const ice = document.getElementById('isIce').value === "true";
 
-            if (error) {
-                alert("주문 실패: " + error.message);
-            } else {
-                alert("주문이 성공적으로 기록되었습니다!");
-                document.getElementById('userName').value = ""; // 이름 칸 비우기
-            }
+        if (!uName) {
+            alert("이름을 입력해주세요!");
+            return;
         }
-    </script>
+
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = "전송 중...";
+        btn.disabled = true;
+
+        // [핵심] 오늘 날짜를 session_id로 생성 (예: 2026-04-29)
+        const todayId = new Date().toISOString().split('T')[0];
+
+        // DB 데이터 삽입 (session_id 포함)
+        const { error } = await supabaseClient
+            .from('orders')
+            .insert([{ 
+                user_name: uName, 
+                menu_name: mName, 
+                is_ice: ice,
+                session_id: todayId 
+            }]);
+
+        if (error) {
+            alert("주문 전송 중 오류가 발생했습니다: " + error.message);
+            btn.innerText = "주문 전송";
+            btn.disabled = false;
+        } else {
+            // 화면 전환
+            document.getElementById('orderForm').style.display = 'none';
+            document.getElementById('successView').style.display = 'block';
+            
+            // 요약 정보 표시
+            document.getElementById('summaryDetails').innerHTML = `
+                <strong>주문자:</strong> ${uName}<br>
+                <strong>메뉴:</strong> ${mName}<br>
+                <strong>옵션:</strong> ${ice ? 'ICE (차갑게)' : 'HOT (따뜻하게)'}<br>
+                <strong>주문일:</strong> ${todayId}
+            `;
+        }
+    });
+</script>
+
 </body>
 </html>
+
+### ✅ 수정 포인트 안내
+1.  **session_id 생성**: `const todayId = new Date().toISOString().split('T')[0];` 코드를 통해 매번 주문 시 현재 날짜를 ID로 만듭니다.
+2.  **데이터 결합**: `.insert([{ ..., session_id: todayId }])` 처럼 Supabase 전송 시 해당 값을 함께 보냅니다.
+3.  **성공 화면(UX)**: `orderForm`은 숨기고(`display: none`), `successView`는 보여주는(`display: block`) 로직을 넣어 사용자가 주문 완료 여부를 확실히 알 수 있게 했습니다.
+
+이제 이 코드를 GitHub에 올리고, 동료들이 주문하면 Supabase에 날짜별로 예쁘게 데이터가 쌓일 것입니다! 진행하시다 막히는 부분이 생기면 다시 알려주세요.
