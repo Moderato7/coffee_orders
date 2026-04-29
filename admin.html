@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>커피 주문 관리자 모드</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+        .admin-container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background-color: #6f4e37; color: white; }
+        .summary-box { background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #ff9800; }
+        .refresh-btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; float: right; }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <button class="refresh-btn" onclick="loadOrders()">새로고침 🔄</button>
+    <h2>📊 오늘 주문 현황판</h2>
+    
+    <div id="summary" class="summary-box">
+        주문을 불러오는 중...
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>시간</th>
+                <th>주문자</th>
+                <th>메뉴</th>
+                <th>옵션</th>
+            </tr>
+        </thead>
+        <tbody id="orderTableBody">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+    async function loadOrders() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // 1. 오늘 00:00:00 이후의 데이터만 가져오기
+        const { data, error } = await supabaseClient
+            .from('orders')
+            .select('*')
+            .gte('created_at', today.toISOString())
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            alert("불러오기 실패: " + error.message);
+            return;
+        }
+
+        renderDisplay(data);
+    }
+
+    function renderDisplay(orders) {
+        const tableBody = document.getElementById('orderTableBody');
+        const summaryDiv = document.getElementById('summary');
+        
+        let tableHtml = '';
+        const countMap = {}; // 메뉴별 수량 계산용 객체
+
+        orders.forEach(order => {
+            const time = new Date(order.created_at).toLocaleTimeString();
+            const iceText = order.is_ice ? "ICE" : "HOT";
+            const menuKey = `${order.menu_name} (${iceText})`;
+
+            // 테이블 내용 생성
+            tableHtml += `<tr>
+                <td>${time}</td>
+                <td>${order.user_name}</td>
+                <td>${order.menu_name}</td>
+                <td>${iceText}</td>
+            </tr>`;
+
+            // 수량 합계 계산 (Java의 Map.put(key, getOrDefault + 1)과 비슷합니다)
+            countMap[menuKey] = (countMap[menuKey] || 0) + 1;
+        });
+
+        // 합계 화면 출력
+        let summaryHtml = '<strong>[메뉴별 총 수량]</strong><br>';
+        for (const [menu, count] of Object.entries(countMap)) {
+            summaryHtml += `${menu}: ${count}잔 / `;
+        }
+        
+        summaryDiv.innerHTML = orders.length > 0 ? summaryHtml : "오늘 들어온 주문이 없습니다.";
+        tableBody.innerHTML = tableHtml;
+    }
+
+    // 페이지 접속 시 바로 실행
+    loadOrders();
+</script>
+</body>
+</html>
