@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>사내 커피 주문 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; max-width: 400px; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>☕ 커피 주문하기</h2>
+        <input type="text" id="userName" placeholder="닉네임을 입력하세요">
+        
+        <select id="menuName">
+            <option value="아메리카노">아메리카노</option>
+            <option value="카페라떼">카페라떼</option>
+            <option value="바닐라라떼">바닐라라떼</option>
+        </select>
+
+        <select id="temp">
+            <option value="true">ICE (차갑게)</option>
+            <option value="false">HOT (따뜻하게)</option>
+        </select>
+
+        <button onclick="order()">주문 제출</button>
+    </div>
+
+    <script>
+        // 1. Supabase 연결 설정 (본인의 정보로 교체하세요!)
+        const SUPABASE_URL = 'https://bmzzdaaxvuturujzmwlx.supabase.co/rest/v1/';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 2. 주문 함수
+        async function order() {
+            const name = document.getElementById('userName').value;
+            const menu = document.getElementById('menuName').value;
+            const isIce = document.getElementById('temp').value === "true";
+
+            if (!name) {
+                alert("이름을 입력해주세요!");
+                return;
+            }
+
+            // DB에 데이터 넣기
+            const { data, error } = await supabase
+                .from('orders')
+                .insert([{ user_name: name, menu_name: menu, is_ice: isIce }]);
+
+            if (error) {
+                alert("주문 실패: " + error.message);
+            } else {
+                alert("주문이 성공적으로 기록되었습니다!");
+                document.getElementById('userName').value = ""; // 이름 칸 비우기
+            }
+        }
+    </script>
+</body>
+</html>
