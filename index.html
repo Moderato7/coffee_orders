@@ -115,10 +115,3 @@
 
 </body>
 </html>
-
-### ✅ 수정 포인트 안내
-1.  **session_id 생성**: `const todayId = new Date().toISOString().split('T')[0];` 코드를 통해 매번 주문 시 현재 날짜를 ID로 만듭니다.
-2.  **데이터 결합**: `.insert([{ ..., session_id: todayId }])` 처럼 Supabase 전송 시 해당 값을 함께 보냅니다.
-3.  **성공 화면(UX)**: `orderForm`은 숨기고(`display: none`), `successView`는 보여주는(`display: block`) 로직을 넣어 사용자가 주문 완료 여부를 확실히 알 수 있게 했습니다.
-
-이제 이 코드를 GitHub에 올리고, 동료들이 주문하면 Supabase에 날짜별로 예쁘게 데이터가 쌓일 것입니다! 진행하시다 막히는 부분이 생기면 다시 알려주세요.
