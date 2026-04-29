@@ -21,19 +21,11 @@
         <div id="sessionDisplay" class="session-tag">세션 확인 중...</div>
         <h2>☕ 커피 주문</h2>
         <input type="text" id="uName" placeholder="이름 입력">
+        
         <select id="mName">
-            <option value="오늘의 커피">오늘의 커피</option>
-            <option value="아메리카노">아메리카노</option>
-            <option value="카페라떼">카페라떼</option>
-            <option value="딸기라떼">딸기라떼</option>            
-            <option value="바닐라라떼">바닐라라떼</option>
-            <option value="홍삼쌍화라떼">홍삼쌍화라떼</option>
-            <option value="요거트스무디">요거트스무디</option>
-            <option value="오미베리티">오미베리티</option>
-            <option value="아포카토">아포카토</option>
-            <option value="더치커피">더치커피</option>            
-            
+            <option value="">-- 메뉴를 선택하세요 --</option>
         </select>
+
         <select id="isIce">
             <option value="true">ICE</option>
             <option value="false">HOT</option>
@@ -48,54 +40,74 @@
 </div>
 
 <script>
+    // 1. 메뉴 리스트 배열 (여기에 50개든 100개든 추가만 하시면 됩니다)
+    const coffeeMenus = [
+    "에스프레소",
+    "아메리카노",
+    "오늘의 커피",
+    "콜드브루",
+    "디카페인 콜드브루",
+    "카푸치노",
+    "카페라떼",
+    "돌체라떼",
+    "바닐라빈라떼",
+    "콜드브루 라떼",
+    "디카페인 콜드브루 라떼",
+    "아포카토",
+    "바닐라라떼",
+    "카라멜라떼",
+    "카페모카",
+    "헤이즐넛라떼",
+    "핫초코",
+    "아이스초코",
+    "홍차 라떼",
+    "그린티 라떼",
+    "딸기라떼",
+    "오곡라떼",
+    "스팀우유",
+    "꿀고구마라떼",
+    "토피넛라떼",
+    "레몬에이드",
+    "자몽에이드",
+    "오렌지에이드",
+    "청포도에이드",
+    "블루베리에이드",
+    "모과에이드",
+    "유자에이드",
+    "루이보스에이드",
+    "복숭아아이스티",
+    "유자차",
+    "모과차",
+    "생강차",
+    "오미베리티",
+    "레몬티",
+    "자몽티",
+    "오렌지티",
+    "루이보스 꿀 매실",
+    "얼그레이 리저브",
+    "로열 캐모마일",
+    "쿨 민트",
+    "루이보스 빌베리",
+    "스위트 레몬그라스",
+    "녹차",
+    "홍삼 쌍화차",
+    "홍삼 쌍화라떼",
+    "리얼 야생 꿀차",
+    "플레인 요거트 스무디",
+    "블루베리 요거트 스무디",
+    "자몽 요거트 스무디",
+    "유자 요거트 스무디",
+    "딸기 요거트 스무디",
+    "이탈리안 젤라또" ];
+
     const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co";
     const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
-
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    // URL에서 ?sid=값 가져오기
-    const params = new URLSearchParams(window.location.search);
-    const sid = params.get('sid');
-
-    if(!sid) {
-        document.body.innerHTML = "<h3>잘못된 접근입니다. 관리자가 공유한 링크를 이용해 주세요.</h3>";
-    } else {
-        document.getElementById('sessionDisplay').innerText = `주문 세션: ${sid}`;
-    }
-
-    async function sendOrder() {
-        const name = document.getElementById('uName').value;
-        const menu = document.getElementById('mName').value;
-        const ice = document.getElementById('isIce').value === "true";
-
-        if(!name) return alert("이름을 입력하세요.");
-
-        const { error } = await supabaseClient.from('orders').insert([{
-            user_name: name, menu_name: menu, is_ice: ice, session_id: sid
-        }]);
-
-        if(!error) {
-            document.getElementById('orderView').style.display = 'none';
-            document.getElementById('successView').style.display = 'block';
-        } else {
-            alert("오류: " + error.message);
-        }
-    }
-
-    // Supabase 오류 점검용
-    console.log("연결 시도 URL:", SB_URL);
-    console.log("연결 시도 KEY:", SB_KEY);
-    
-    // 테스트용 간단 조회
-    async function testConnection() {
-        const { data, error } = await supabaseClient.from('orders').select('*').limit(1);
-        if (error) {
-            console.error("연결 에러 상세:", error);
-        } else {
-            console.log("연결 성공!");
-        }
-    }
-    testConnection();
-</script>
-</body>
-</html>
+    // 2. 메뉴 생성 로직 (배열을 HTML 옵션으로 변환)
+    const menuSelect = document.getElementById('mName');
+    coffeeMenus.forEach(menu => {
+        const option = document.createElement('option');
+        option.value = menu;
+        option.innerText = menu;
+        menuSelect.appendChild(option
