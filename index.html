@@ -122,16 +122,15 @@
         menuSelect.addEventListener('change', function() {
             const selectedMenuName = this.value;
             const selectedMenuData = coffeeMenus.find(m => m.name === selectedMenuName);
-            const hotOption = tempSelect.options[1]; // HOT 옵션
+            const hotOption = tempSelect.querySelector('option[value="false"]');
         
             if (selectedMenuData && selectedMenuData.iceOnly) {
-                // ICE 전용 메뉴일 경우
-                tempSelect.value = "true"; // 자동으로 ICE 선택
-                hotOption.disabled = true; // HOT 비활성화 (회색 처리)
-                // 팝업 대신 버튼 아래나 온도창 옆에 텍스트로 표시하면 더 좋음
+                tempSelect.value = "true"; 
+                hotOption.disabled = true;
+                hotOption.innerText = "HOT (불가)"; // 옵션 텍스트를 바꿔주는 센스!
             } else {
-                // HOT도 가능한 메뉴일 경우
-                hotOption.disabled = false; // 다시 활성화
+                hotOption.disabled = false;
+                hotOption.innerText = "HOT"; // 다시 원래대로
             }
         });
 
