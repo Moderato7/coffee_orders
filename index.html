@@ -40,46 +40,109 @@
 </div>
 
 <script>
-    // 1. 메뉴 리스트 배열 (여기에 50개든 100개든 추가만 하시면 됩니다)
-    const coffeeMenus = 
-        [ "에스프레소", "아메리카노", "오늘의 커피", "콜드브루", "디카페인 콜드브루", "카푸치노",
-            "카페라떼", "돌체라떼",  "바닐라빈라떼", "콜드브루 라떼", "디카페인 콜드브루 라떼", "아포카토",
-            "바닐라라떼", "카라멜라떼", "카페모카", "헤이즐넛라떼", "핫초코", "아이스초코", "홍차 라떼",
-            "그린티 라떼", "딸기라떼", "오곡라떼", "스팀우유", "꿀고구마라떼", "토피넛라떼", "레몬에이드",
-            "자몽에이드", "오렌지에이드", "청포도에이드", "블루베리에이드", "모과에이드", "유자에이드",
-            "루이보스에이드", "복숭아아이스티", "유자차", "모과차", "생강차", "오미베리티", "레몬티", "자몽티",
-            "오렌지티", "루이보스 꿀 매실", "얼그레이 리저브", "로열 캐모마일", "쿨 민트", "루이보스 빌베리",
-            "스위트 레몬그라스", "녹차", "홍삼 쌍화차", "홍삼 쌍화라떼", "리얼 야생 꿀차", "플레인 요거트 스무디",
-            "블루베리 요거트 스무디", "자몽 요거트 스무디", "유자 요거트 스무디", "딸기 요거트 스무디", "이탈리안 젤라또" 
-        ];
+    // 1. 메뉴 데이터 구조화 (HOT이 불가능한 메뉴는 iceOnly: true를 붙여줍니다)
+    const coffeeMenus = [
+        { name: "에스프레소", iceOnly: false },                
+        { name: "아메리카노", iceOnly: false },
+        { name: "오늘의 커피", iceOnly: false },
+        { name: "콜드브루", iceOnly: false },
+        { name: "디카페인 콜드브루", iceOnly: false },
+        { name: "카푸치노", iceOnly: false },
+        { name: "카페라떼", iceOnly: false },        
+        { name: "카페모카", iceOnly: false },
+        { name: "돌체 라떼", iceOnly: false },
+        { name: "바닐라빈 라떼", iceOnly: false },
+        { name: "콜드브루 라떼", iceOnly: false },
+        { name: "디카페인 콜드브루 라떼", iceOnly: false },
+        { name: "바닐라 라떼", iceOnly: false },
+        { name: "카라멜 라떼", iceOnly: false },
+        { name: "헤이즐넛 라떼", iceOnly: false },
+        { name: "홍차 라떼", iceOnly: false },
+        { name: "그린티 라떼", iceOnly: false },
+        { name: "오곡 라떼", iceOnly: false },        
+        { name: "딸기 라떼", iceOnly: false },
+        { name: "꿀고구마 라떼", iceOnly: false },
+        { name: "토피넛라떼", iceOnly: false },
+        { name: "스팀우유", iceOnly: false },
+        { name: "핫초코", iceOnly: false },
+        { name: "유자차", iceOnly: false },
+        { name: "모과차", iceOnly: false },
+        { name: "생강차", iceOnly: false },
+        { name: "오미베리티", iceOnly: false },
+        { name: "레몬티", iceOnly: false },
+        { name: "자몽티", iceOnly: false },
+        { name: "오렌지티", iceOnly: false },
+        { name: "루이보스 꿀 매실", iceOnly: false },
+        { name: "루이보스 빌베리", iceOnly: false },
+        { name: "얼그레이 리저브", iceOnly: false },
+        { name: "로열 캐모마일", iceOnly: false },
+        { name: "쿨 민트", iceOnly: false },
+        { name: "녹차", iceOnly: false },
+        { name: "스위트 레몬그라스", iceOnly: false },
+        { name: "홍삼 쌍화차", iceOnly: false },
+        { name: "홍삼 쌍화라떼", iceOnly: false },
+        { name: "리얼 야생꿀차", iceOnly: false },
+        { name: "아이스초코", iceOnly: false }
+        { name: "아포카토", iceOnly: false }
+        { name: "레몬에이드", iceOnly: true },
+        { name: "오렌지에이드", iceOnly: true },
+        { name: "자몽에이드", iceOnly: true },
+        { name: "청포도에이드", iceOnly: true },
+        { name: "블루베리에이드", iceOnly: true },
+        { name: "모과에이드", iceOnly: true },
+        { name: "유자에이드", iceOnly: true },
+        { name: "루이보스에이드", iceOnly: true },
+        { name: "복숭아 아이스티", iceOnly: true },
+        { name: "플레인 요거트 스무디", iceOnly: true },
+        { name: "블루베리 요거트 스무디", iceOnly: true },
+        { name: "자몽 요거트 스무디", iceOnly: true },
+        { name: "유자 요거트 스무디", iceOnly: true },
+        { name: "딸기 요거트 스무디", iceOnly: true },
+        { name: "이탈리안 젤라또", iceOnly: true }
+    ];
 
     const SB_URL = "https://bmzzdaaxvuturujzmwlx.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtenpkYWF4dnV0dXJ1anptd2x4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTgwOTIsImV4cCI6MjA5Mjk5NDA5Mn0.WnWQNn8XHWHGhHVxZN0GvC77g7qQsdBOzcnAAPJLrOg";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // 기존 키 유지
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-    // 페이지가 완전히 로드된 후 실행되도록 보장
     window.onload = function() {
         const menuSelect = document.getElementById('mName');
+        const tempSelect = document.getElementById('isIce');
         
-        // 기존 옵션이 있다면 초기화 (중복 방지)
+        // 메뉴 채우기
         menuSelect.innerHTML = '<option value="">-- 메뉴를 선택하세요 --</option>';
-
         coffeeMenus.forEach(menu => {
             const option = document.createElement('option');
-            option.value = menu;
-            option.innerText = menu;
+            option.value = menu.name;
+            option.innerText = menu.name;
             menuSelect.appendChild(option);
+        });
+
+        // [핵심 로직] 메뉴 선택 시 '온도' 옵션 제어하기
+        menuSelect.addEventListener('change', function() {
+            const selectedMenuName = this.value;
+            const selectedMenuData = coffeeMenus.find(m => m.name === selectedMenuName);
+
+            if (selectedMenuData && selectedMenuData.iceOnly) {
+                // ICE 전용 메뉴일 경우
+                tempSelect.value = "true"; // 강제로 ICE 선택
+                // HOT 옵션만 찾아서 비활성화
+                tempSelect.options[1].disabled = true; 
+                alert("이 메뉴는 ICE 전용입니다!");
+            } else {
+                // HOT도 가능한 메뉴일 경우
+                tempSelect.options[1].disabled = false;
+            }
         });
 
         // 세션 확인 로직
         const params = new URLSearchParams(window.location.search);
         const sid = params.get('sid');
-
         if(!sid) {
             document.body.innerHTML = "<h3>잘못된 접근입니다. 관리자가 공유한 링크를 이용해 주세요.</h3>";
         } else {
             document.getElementById('sessionDisplay').innerText = `주문 세션: ${sid}`;
-            window.currentSid = sid; // 전역 변수로 저장
+            window.currentSid = sid;
         }
     };
 
